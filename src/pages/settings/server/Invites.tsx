@@ -9,9 +9,10 @@ import { useEffect, useState } from "preact/hooks";
 
 import { IconButton, Preloader } from "@revoltchat/ui";
 
+import { getChannelName } from "../../../context/revoltjs/util";
+
 import UserIcon from "../../../components/common/user/UserIcon";
 import { Username } from "../../../components/common/user/UserShort";
-import { ChannelName } from "../../../controllers/client/jsx/ChannelName";
 
 interface InnerProps {
     invite: API.Invite;
@@ -32,9 +33,7 @@ const Inner = observer(({ invite, server, removeSelf }: InnerProps) => {
                 <UserIcon target={user} size={24} />{" "}
                 <Username user={user} showServerIdentity="both" />
             </span>
-            <span>
-                <ChannelName channel={channel} prefix />
-            </span>
+            <span>{channel ? getChannelName(channel, true) : "#??"}</span>
             <IconButton
                 onClick={() => {
                     setDelete(true);

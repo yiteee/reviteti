@@ -4,7 +4,8 @@ import { mapToRecord } from "../../lib/conversion";
 
 import { Fonts, MonospaceFonts, Overrides } from "../../context/Theme";
 
-import { EmojiPack, setGlobalEmojiPack } from "../../components/common/Emoji";
+import { EmojiPack } from "../../components/common/Emoji";
+import { MIGRATIONS } from "../State";
 import Persistent from "../interfaces/Persistent";
 import Store from "../interfaces/Store";
 import Syncable from "../interfaces/Syncable";
@@ -21,7 +22,6 @@ export interface ISettings {
     "appearance:seasonal": boolean;
     "appearance:transparency": boolean;
     "appearance:show_send_button": boolean;
-    "appearance:show_account_age": boolean;
 
     "appearance:theme:base": "dark" | "light";
     "appearance:theme:overrides": Partial<Overrides>;
@@ -79,11 +79,6 @@ export default class Settings
      * @param value Value
      */
     @action set<T extends keyof ISettings>(key: T, value: ISettings[T]) {
-        // Emoji needs to be immediately applied.
-        if (key === "appearance:emoji") {
-            setGlobalEmojiPack(value as EmojiPack);
-        }
-
         this.data.set(key, value);
     }
 

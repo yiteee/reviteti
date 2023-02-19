@@ -2,9 +2,12 @@ import { Hash, VolumeFull } from "@styled-icons/boxicons-regular";
 import { observer } from "mobx-react-lite";
 import { Channel } from "revolt.js";
 
+import { useContext } from "preact/hooks";
+
+import { AppContext } from "../../context/revoltjs/RevoltClient";
+
 import fallback from "./assets/group.png";
 
-import { useClient } from "../../controllers/client/ClientController";
 import { ImageIconBase, IconBaseProps } from "./IconBase";
 
 interface Props extends IconBaseProps<Channel> {
@@ -19,7 +22,7 @@ export default observer(
                 keyof Props | "children" | "as"
             >,
     ) => {
-        const client = useClient();
+        const client = useContext(AppContext);
 
         const {
             size,

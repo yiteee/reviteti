@@ -14,9 +14,10 @@ import { IconButton } from "@revoltchat/ui";
 import { stopPropagation } from "../../lib/stopPropagation";
 import { voiceState } from "../../lib/vortex/VoiceState";
 
+import { useIntermediate } from "../../context/intermediate/Intermediate";
+
 import UserIcon from "../../components/common/user/UserIcon";
 import UserStatus from "../../components/common/user/UserStatus";
-import { modalController } from "../../controllers/modals/ModalController";
 
 interface Props {
     user: User;
@@ -24,6 +25,7 @@ interface Props {
 
 export const Friend = observer(({ user }: Props) => {
     const history = useHistory();
+    const { openScreen } = useIntermediate();
 
     const actions: Children[] = [];
     let subtext: Children = null;
@@ -99,7 +101,8 @@ export const Friend = observer(({ user }: Props) => {
                     stopPropagation(
                         ev,
                         user.relationship === "Friend"
-                            ? modalController.push({
+                            ? openScreen({
+                                  id: "special_prompt",
                                   type: "unfriend_user",
                                   target: user,
                               })
@@ -125,12 +128,7 @@ export const Friend = observer(({ user }: Props) => {
     return (
         <div
             className={styles.friend}
-            onClick={() =>
-                modalController.push({
-                    type: "user_profile",
-                    user_id: user._id,
-                })
-            }
+            onClick={() => openScreen({ id: "profile", user_id: user._id })}
             {...useTriggerEvents("Menu", {
                 user: user._id,
             })}>

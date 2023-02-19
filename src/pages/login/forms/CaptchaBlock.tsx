@@ -7,7 +7,7 @@ import { useEffect } from "preact/hooks";
 
 import { Preloader } from "@revoltchat/ui";
 
-import { clientController } from "../../../controllers/client/ClientController";
+import { useApplicationState } from "../../../mobx/State";
 
 export interface CaptchaProps {
     onSuccess: (token?: string) => void;
@@ -15,7 +15,7 @@ export interface CaptchaProps {
 }
 
 export const CaptchaBlock = observer((props: CaptchaProps) => {
-    const configuration = clientController.getServerConfig();
+    const configuration = useApplicationState().config.get();
 
     useEffect(() => {
         if (!configuration?.features.captcha.enabled) {

@@ -2,16 +2,18 @@ import { Block } from "@styled-icons/boxicons-regular";
 import { Trash } from "@styled-icons/boxicons-solid";
 
 import { Text } from "preact-i18n";
+import { useContext } from "preact/hooks";
 
 import { CategoryButton } from "@revoltchat/ui";
 
+import { modalController } from "../../../context/modals";
 import {
-    clientController,
+    LogOutContext,
     useClient,
-} from "../../../controllers/client/ClientController";
-import { modalController } from "../../../controllers/modals/ModalController";
+} from "../../../context/revoltjs/RevoltClient";
 
 export default function AccountManagement() {
+    const logOut = useContext(LogOutContext);
     const client = useClient();
 
     const callback = (route: "disable" | "delete") => () =>
@@ -24,7 +26,7 @@ export default function AccountManagement() {
                             "X-MFA-Ticket": ticket.token,
                         },
                     })
-                    .then(clientController.logoutCurrent),
+                    .then(() => logOut(true)),
         );
 
     return (

@@ -3,7 +3,8 @@ import { Key, Clipboard, Globe, Plus } from "@styled-icons/boxicons-regular";
 import { LockAlt, HelpCircle } from "@styled-icons/boxicons-solid";
 import type { AxiosError } from "axios";
 import { observer } from "mobx-react-lite";
-import { API, User } from "revolt.js";
+import { API } from "revolt.js";
+import { User } from "revolt.js";
 import styled from "styled-components/macro";
 
 import styles from "./Panes.module.scss";
@@ -23,15 +24,17 @@ import { internalEmit } from "../../../lib/eventEmitter";
 import { useTranslation } from "../../../lib/i18n";
 import { stopPropagation } from "../../../lib/stopPropagation";
 
+import { useIntermediate } from "../../../context/intermediate/Intermediate";
+import { modalController } from "../../../context/modals";
+import { FileUploader } from "../../../context/revoltjs/FileUploads";
+import { useClient } from "../../../context/revoltjs/RevoltClient";
+
 import AutoComplete, {
     useAutoComplete,
 } from "../../../components/common/AutoComplete";
 import CollapsibleSection from "../../../components/common/CollapsibleSection";
 import Tooltip from "../../../components/common/Tooltip";
 import UserIcon from "../../../components/common/user/UserIcon";
-import { useClient } from "../../../controllers/client/ClientController";
-import { FileUploader } from "../../../controllers/client/jsx/legacy/FileUploads";
-import { modalController } from "../../../controllers/modals/ModalController";
 
 interface Data {
     _id: string;
@@ -86,6 +89,7 @@ function BotCard({ bot, onDelete, onUpdate }: Props) {
     );
     const [interactionsRef, setInteractionsRef] =
         useState<HTMLInputElement | null>(null);
+    const { writeClipboard, openScreen } = useIntermediate();
 
     const [profile, setProfile] = useState<undefined | API.UserProfile>(
         undefined,
@@ -215,8 +219,8 @@ function BotCard({ bot, onDelete, onUpdate }: Props) {
                                 target={user}
                                 size={42}
                                 onClick={() =>
-                                    modalController.push({
-                                        type: "user_profile",
+                                    openScreen({
+                                        id: "profile",
                                         user_id: user._id,
                                     })
                                 }
@@ -264,9 +268,7 @@ function BotCard({ bot, onDelete, onUpdate }: Props) {
                                         }>
                                         <a
                                             onClick={() =>
-                                                modalController.writeText(
-                                                    user!._id,
-                                                )
+                                                writeClipboard(user!._id)
                                             }>
                                             {user!._id}
                                         </a>
@@ -334,7 +336,7 @@ function BotCard({ bot, onDelete, onUpdate }: Props) {
                 <CategoryButton
                     account
                     icon={<Key size={24} />}
-                    onClick={() => modalController.writeText(bot.token)}
+                    onClick={() => writeClipboard(bot.token)}
                     description={
                         <>
                             {"••••• "}
@@ -459,7 +461,8 @@ function BotCard({ bot, onDelete, onUpdate }: Props) {
                             palette="error"
                             onClick={async () => {
                                 setSaving(true);
-                                modalController.push({
+                                openScreen({
+                                    id: "special_prompt",
                                     type: "delete_bot",
                                     target: bot._id,
                                     name: user.username,
@@ -474,7 +477,7 @@ function BotCard({ bot, onDelete, onUpdate }: Props) {
                     <>
                         <Button
                             onClick={() =>
-                                modalController.writeText(
+                                writeClipboard(
                                     `${window.origin}/bot/${bot._id}`,
                                 )
                             }>
@@ -506,14 +509,16 @@ export const MyBots = observer(() => {
         // eslint-disable-next-line
     }, []);
 
+    const { openScreen } = useIntermediate();
+
     return (
         <div className={styles.myBots}>
             <CategoryButton
                 account
                 icon={<Plus size={24} />}
                 onClick={() =>
-                    modalController.push({
-                        type: "create_bot",
+                    openScreen({
+                        id: "create_bot",
                         onCreate: (bot) => setBots([...(bots ?? []), bot]),
                     })
                 }

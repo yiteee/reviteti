@@ -1,8 +1,6 @@
-import { HelpCircle } from "@styled-icons/boxicons-solid";
 import isEqual from "lodash.isequal";
 import { observer } from "mobx-react-lite";
 import { Server } from "revolt.js";
-import styled from "styled-components";
 
 import { Text } from "preact-i18n";
 import { useMemo, useState } from "preact/hooks";
@@ -18,10 +16,10 @@ import {
     Category,
 } from "@revoltchat/ui";
 
-import Tooltip from "../../../components/common/Tooltip";
+import { useIntermediate } from "../../../context/intermediate/Intermediate";
+
 import { PermissionList } from "../../../components/settings/roles/PermissionList";
 import { RoleOrDefault } from "../../../components/settings/roles/RoleSelection";
-import { modalController } from "../../../controllers/modals/ModalController";
 
 interface Props {
     server: Server;
@@ -56,32 +54,18 @@ export const Roles = observer(({ server }: Props) => {
     // Consolidate all permissions that we can change right now.
     const currentRoles = useRoles(server);
 
-    const RoleId = styled.div`
-        gap: 4px;
-        display: flex;
-        align-items: center;
-
-        font-size: 12px;
-        font-weight: 600;
-        color: var(--tertiary-foreground);
-
-        a {
-            color: var(--tertiary-foreground);
-        }
-    `;
-
-    const DeleteRoleButton = styled(Button)`
-        margin: 16px 0;
-    `;
+    // Pull in modal context.
+    const { openScreen } = useIntermediate();
 
     return (
         <PermissionsLayout
             server={server}
             rank={server.member?.ranking ?? Infinity}
             onCreateRole={(callback) =>
-                modalController.push({
+                openScreen({
+                    id: "special_input",
                     type: "create_role",
-                    server,
+                    server: server as any,
                     callback,
                 })
             }
@@ -169,30 +153,6 @@ export const Roles = observer(({ server }: Props) => {
                                     </p>
                                 </section>
                                 <section>
-                                    <Category>{"Role ID"}</Category>
-                                    <RoleId>
-                                        <Tooltip
-                                            content={
-                                                "This is a unique identifier for this role."
-                                            }>
-                                            <HelpCircle size={16} />
-                                        </Tooltip>
-                                        <Tooltip
-                                            content={
-                                                <Text id="app.special.copy" />
-                                            }>
-                                            <a
-                                                onClick={() =>
-                                                    modalController.writeText(
-                                                        currentRole.id,
-                                                    )
-                                                }>
-                                                {currentRole.id}
-                                            </a>
-                                        </Tooltip>
-                                    </RoleId>
-                                </section>
-                                <section>
                                     <Category>
                                         <Text id="app.settings.permissions.role_colour" />
                                     </Category>
@@ -270,12 +230,12 @@ export const Roles = observer(({ server }: Props) => {
                                 <h1>
                                     <Text id="app.settings.categories.danger_zone" />
                                 </h1>
-                                <DeleteRoleButton
+                                <Button
                                     palette="error"
                                     compact
                                     onClick={deleteRole}>
                                     <Text id="app.settings.permissions.delete_role" />
-                                </DeleteRoleButton>
+                                </Button>
                             </>
                         )}
                     </div>

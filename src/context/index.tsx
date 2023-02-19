@@ -6,19 +6,21 @@ import { useEffect, useState } from "preact/hooks";
 
 import { Preloader, UIProvider } from "@revoltchat/ui";
 
-import { state } from "../mobx/State";
+import { hydrateState } from "../mobx/State";
 
-import Binder from "../controllers/client/jsx/Binder";
-import ModalRenderer from "../controllers/modals/ModalRenderer";
 import Locale from "./Locale";
 import Theme from "./Theme";
 import { history } from "./history";
+import Intermediate from "./intermediate/Intermediate";
+import ModalRenderer from "./modals/ModalRenderer";
+import Client from "./revoltjs/RevoltClient";
+import SyncManager from "./revoltjs/SyncManager";
 
 const uiContext = {
     Link,
     Text: Text as any,
     Trigger: ContextMenuTrigger,
-    emitAction: () => void {},
+    emitAction: () => {},
 };
 
 /**
@@ -29,7 +31,7 @@ export default function Context({ children }: { children: Children }) {
     const [ready, setReady] = useState(false);
 
     useEffect(() => {
-        state.hydrate().then(() => setReady(true));
+        hydrateState().then(() => setReady(true));
     }, []);
 
     if (!ready) return <Preloader type="spinner" />;
@@ -38,8 +40,12 @@ export default function Context({ children }: { children: Children }) {
         <Router history={history}>
             <UIProvider value={uiContext}>
                 <Locale>
-                    <>{children}</>
-                    <Binder />
+                    <Intermediate>
+                        <Client>
+                            {children}
+                            <SyncManager />
+                        </Client>
+                    </Intermediate>
                     <ModalRenderer />
                 </Locale>
             </UIProvider>

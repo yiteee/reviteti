@@ -3,13 +3,17 @@ import { Lock } from "@styled-icons/boxicons-solid";
 import { API } from "revolt.js";
 
 import { Text } from "preact-i18n";
-import { useCallback, useEffect, useState } from "preact/hooks";
+import { useCallback, useContext, useEffect, useState } from "preact/hooks";
 
 import { Category, CategoryButton, Error, Tip } from "@revoltchat/ui";
 
-import { useSession } from "../../../controllers/client/ClientController";
-import { takeError } from "../../../controllers/client/jsx/error";
-import { modalController } from "../../../controllers/modals/ModalController";
+import { modalController } from "../../../context/modals";
+import {
+    ClientStatus,
+    StatusContext,
+    useClient,
+} from "../../../context/revoltjs/RevoltClient";
+import { takeError } from "../../../context/revoltjs/util";
 
 /**
  * Temporary helper function for Axios config
@@ -29,8 +33,8 @@ export function toConfig(token: string) {
  */
 export default function MultiFactorAuthentication() {
     // Pull in prerequisites
-    const session = useSession()!;
-    const client = session.client!;
+    const client = useClient();
+    const status = useContext(StatusContext);
 
     // Keep track of MFA state
     const [mfa, setMFA] = useState<API.MultiFactorStatus>();
@@ -38,13 +42,13 @@ export default function MultiFactorAuthentication() {
 
     // Fetch the current MFA status on account
     useEffect(() => {
-        if (!mfa && session.state === "Online") {
-            client!.api
+        if (!mfa && status === ClientStatus.ONLINE) {
+            client.api
                 .get("/auth/mfa/")
                 .then(setMFA)
                 .catch((err) => setError(takeError(err)));
         }
-    }, [mfa, client, session.state]);
+    }, [client, mfa, status]);
 
     // Action called when recovery code button is pressed
     const recoveryAction = useCallback(async () => {
@@ -100,11 +104,7 @@ export default function MultiFactorAuthentication() {
         // Decide whether to disable or enable.
         if (mfa!.totp_mfa) {
             // Disable TOTP authentication
-            await client.api.delete(
-                "/auth/mfa/totp",
-                {},
-                toConfig(ticket.token),
-            );
+            await client.api.delete("/auth/mfa/totp", toConfig(ticket.token));
 
             setMFA({
                 ...mfa!,

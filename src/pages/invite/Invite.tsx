@@ -1,10 +1,11 @@
 import { ArrowBack } from "@styled-icons/boxicons-regular";
+import { autorun } from "mobx";
 import { Redirect, useHistory, useParams } from "react-router-dom";
 import { API } from "revolt.js";
 
 import styles from "./Invite.module.scss";
 import { Text } from "preact-i18n";
-import { useEffect, useState } from "preact/hooks";
+import { useContext, useEffect, useState } from "preact/hooks";
 
 import { Button, Category, Error, Preloader } from "@revoltchat/ui";
 
@@ -12,22 +13,24 @@ import { TextReact } from "../../lib/i18n";
 
 import { useApplicationState } from "../../mobx/State";
 
+import RequiresOnline from "../../context/revoltjs/RequiresOnline";
+import {
+    AppContext,
+    ClientStatus,
+    StatusContext,
+} from "../../context/revoltjs/RevoltClient";
+import { takeError } from "../../context/revoltjs/util";
+
 import ServerIcon from "../../components/common/ServerIcon";
 import UserIcon from "../../components/common/user/UserIcon";
-import {
-    useClient,
-    useSession,
-} from "../../controllers/client/ClientController";
-import RequiresOnline from "../../controllers/client/jsx/RequiresOnline";
-import { takeError } from "../../controllers/client/jsx/error";
 
 export default function Invite() {
     const history = useHistory();
-    const session = useSession();
-    const client = useClient();
+    const client = useContext(AppContext);
 
     const layout = useApplicationState().layout;
 
+    const status = useContext(StatusContext);
     const { code } = useParams<{ code: string }>();
     const [processing, setProcessing] = useState(false);
     const [error, setError] = useState<string | undefined>(undefined);
@@ -42,7 +45,7 @@ export default function Invite() {
                 .then((data) => setInvite(data))
                 .catch((err) => setError(takeError(err)));
         }
-    }, [code, invite]);
+    }, [client, code, invite, status]);
 
     if (code === undefined) return <Redirect to={layout.getLastPath()} />;
 
@@ -151,7 +154,7 @@ export default function Invite() {
                         <Button
                             palette="secondary"
                             onClick={async () => {
-                                if (!session) {
+                                if (status === ClientStatus.READY) {
                                     return history.push("/");
                                 }
 
@@ -169,7 +172,7 @@ export default function Invite() {
                                     setProcessing(false);
                                 }
                             }}>
-                            {!session ? (
+                            {status === ClientStatus.READY ? (
                                 <Text id="app.special.invite.login" />
                             ) : (
                                 <Text id="app.special.invite.accept" />

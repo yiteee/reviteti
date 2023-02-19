@@ -6,9 +6,10 @@ import styled, { css } from "styled-components/macro";
 
 import { useApplicationState } from "../../../mobx/State";
 
+import { useClient } from "../../../context/revoltjs/RevoltClient";
+
 import fallback from "../assets/user.png";
 
-import { useClient } from "../../../controllers/client/ClientController";
 import IconBase, { IconBaseProps } from "../IconBase";
 
 type VoiceStatus = "muted" | "deaf";
@@ -25,8 +26,6 @@ export function useStatusColour(user?: User) {
     return user?.online && user?.status?.presence !== "Invisible"
         ? user?.status?.presence === "Idle"
             ? theme.getVariable("status-away")
-            : user?.status?.presence === "Focus"
-            ? theme.getVariable("status-focus")
             : user?.status?.presence === "Busy"
             ? theme.getVariable("status-busy")
             : theme.getVariable("status-online")
@@ -57,7 +56,7 @@ export default observer(
                 keyof Props | "children" | "as"
             >,
     ) => {
-        const client = useClient();
+        const client = useApplicationState().client!;
 
         const {
             target,

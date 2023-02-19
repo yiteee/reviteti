@@ -1,4 +1,4 @@
-import { Error, Check } from "@styled-icons/boxicons-regular";
+import { Check } from "@styled-icons/boxicons-regular";
 import { observer } from "mobx-react-lite";
 
 import styles from "./Panes.module.scss";
@@ -112,8 +112,7 @@ function Entry({ entry: [x, lang], selected, onSelect }: Props) {
                         )}
                     </div>
                     <span className={styles.description}>
-                        {lang.display} {lang.verified && <Check size={16} />}{" "}
-                        {lang.incomplete && <Error size={16} />}
+                        {lang.display} {lang.verified && <Check size={16} />}
                     </span>
                 </>
             }

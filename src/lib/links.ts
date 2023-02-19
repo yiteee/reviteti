@@ -1,55 +1,25 @@
-/**
- * Type of link
- */
 type LinkType =
+    | { type: "profile"; id: string }
+    | { type: "navigate"; path: string; navigation_type?: null }
     | {
           type: "navigate";
           path: string;
+          navigation_type: "channel";
+          channel_id: string;
       }
     | { type: "external"; href: string; url: URL }
     | { type: "none" };
 
-/**
- * Allowed origins for relative navigation
- */
 const ALLOWED_ORIGINS = [
     location.hostname,
     "app.revolt.chat",
     "nightly.revolt.chat",
     "local.revolt.chat",
-    "rolt.chat",
 ];
 
-/**
- * Permissible protocols in URLs
- */
-const PROTOCOL_WHITELIST = [
-    "http:",
-    "https:",
-    "ftp:",
-    "ftps:",
-    "mailto:",
-    "news:",
-    "irc:",
-    "gopher:",
-    "nntp:",
-    "feed:",
-    "telnet:",
-    "mms:",
-    "rtsp:",
-    "svn:",
-    "git:",
-    "tel:",
-    "fax:",
-    "xmpp:",
-    "magnet:",
-];
+const CHANNEL_PATH_RE =
+    /^\/server\/[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{26}\/channel\/[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{26}$/;
 
-/**
- * Determine what kind of link we are dealing with and sanitise any malicious input
- * @param href Input URL
- * @returns Link Type
- */
 export function determineLink(href?: string): LinkType {
     let internal,
         url: URL | null = null;
@@ -59,13 +29,30 @@ export function determineLink(href?: string): LinkType {
             url = new URL(href, location.href);
 
             if (ALLOWED_ORIGINS.includes(url.hostname)) {
-                const path = url.pathname.replace(/[^A-z0-9/]/g, "");
-                return { type: "navigate", path };
+                const path = url.pathname;
+                if (path.startsWith("/@")) {
+                    const id = path.substr(2);
+                    if (/[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{26}/.test(id)) {
+                        return { type: "profile", id };
+                    }
+                } else {
+                    if (CHANNEL_PATH_RE.test(path)) {
+                        return {
+                            type: "navigate",
+                            path,
+                            navigation_type: "channel",
+                            channel_id: path.slice(43),
+                        };
+                    }
+                    return { type: "navigate", path };
+                }
+
+                internal = true;
             }
         } catch (err) {}
 
         if (!internal && url) {
-            if (PROTOCOL_WHITELIST.includes(url.protocol)) {
+            if (url.protocol !== "javascript") {
                 return { type: "external", href, url };
             }
         }

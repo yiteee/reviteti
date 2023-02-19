@@ -1,4 +1,4 @@
-import { Chrome, Android, Windows } from "@styled-icons/boxicons-logos";
+import { Chrome, Android, Apple, Windows } from "@styled-icons/boxicons-logos";
 import { HelpCircle, Desktop, LogOut } from "@styled-icons/boxicons-regular";
 import {
     Safari,
@@ -6,10 +6,8 @@ import {
     Microsoftedge,
     Linux,
     Macos,
-    Ios,
     Opera,
     Samsung,
-    Windowsxp,
 } from "@styled-icons/simple-icons";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { useHistory } from "react-router-dom";
@@ -18,7 +16,7 @@ import { decodeTime } from "ulid";
 
 import styles from "./Panes.module.scss";
 import { Text } from "preact-i18n";
-import { useEffect, useState } from "preact/hooks";
+import { useContext, useEffect, useState } from "preact/hooks";
 
 import {
     Button,
@@ -29,14 +27,13 @@ import {
 } from "@revoltchat/ui";
 
 import { dayjs } from "../../../context/Locale";
-
-import { useClient } from "../../../controllers/client/ClientController";
-import { modalController } from "../../../controllers/modals/ModalController";
+import { modalController } from "../../../context/modals";
+import { AppContext } from "../../../context/revoltjs/RevoltClient";
 
 dayjs.extend(relativeTime);
 
 export function Sessions() {
-    const client = useClient();
+    const client = useContext(AppContext);
     const deviceId =
         typeof client.session === "object" ? client.session._id : undefined;
 
@@ -100,9 +97,7 @@ export function Sessions() {
             case /mac.*os/i.test(name):
                 return <Macos size={14} />;
             case /i(Pad)?os/i.test(name):
-                return <Ios size={14} />;
-            case /windows 7/i.test(name):
-                return <Windowsxp size={14} />;
+                return <Apple size={14} />;
             case /windows/i.test(name):
                 return <Windows size={14} />;
             default:

@@ -15,14 +15,14 @@ import { IconButton } from "@revoltchat/ui";
 
 import { determineFileSize } from "../../../../lib/fileSize";
 
-import { useClient } from "../../../../controllers/client/ClientController";
+import { AppContext } from "../../../../context/revoltjs/RevoltClient";
 
 interface Props {
     attachment: API.File;
 }
 
 export default function AttachmentActions({ attachment }: Props) {
-    const client = useClient();
+    const client = useContext(AppContext);
     const { filename, metadata, size } = attachment;
 
     const url = client.generateFileURL(attachment);

@@ -14,10 +14,8 @@ POST_INSTALL="pm2 restart revite"
 export REVOLT_SAAS=https://github.com/revoltchat/assets
 
 
-# Exit when any command fails
-set -e
-
 # 1. Build Revite
+yarn
 yarn build
 
 # 2. Archive built files

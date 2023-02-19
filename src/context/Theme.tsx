@@ -31,7 +31,6 @@ export type Variables =
     | "tooltip"
     | "status-online"
     | "status-away"
-    | "status-focus"
     | "status-busy"
     | "status-streaming"
     | "status-invisible";
@@ -284,7 +283,6 @@ export const PRESETS: Record<string, Theme> = {
         "tertiary-foreground": "#3a3a3a",
         "status-online": "#3ABF7E",
         "status-away": "#F39F00",
-        "status-focus": "#4799F0",
         "status-busy": "#F84848",
         "status-streaming": "#977EFF",
         "status-invisible": "#A5A5A5",
@@ -312,7 +310,6 @@ export const PRESETS: Record<string, Theme> = {
         "tertiary-foreground": "#848484",
         "status-online": "#3ABF7E",
         "status-away": "#F39F00",
-        "status-focus": "#4799F0",
         "status-busy": "#F84848",
         "status-streaming": "#977EFF",
         "status-invisible": "#A5A5A5",
@@ -339,8 +336,9 @@ export const generateVariables = (theme: Theme) => {
         if (colour) {
             const [r, g, b] = colour;
             return `--${key}: ${theme[key]}; --${key}-rgb: ${r}, ${g}, ${b};`;
-        }
-        return `--${key}: ${theme[key]};`;
+        } 
+            return `--${key}: ${theme[key]};`;
+        
     });
 };
 

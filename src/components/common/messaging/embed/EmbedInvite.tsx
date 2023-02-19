@@ -1,4 +1,5 @@
 import { Group } from "@styled-icons/boxicons-solid";
+import { reaction } from "mobx";
 import { observer } from "mobx-react-lite";
 import { useHistory } from "react-router-dom";
 import { Message, API } from "revolt.js";
@@ -11,13 +12,14 @@ import { Button, Category, Preloader } from "@revoltchat/ui";
 import { isTouchscreenDevice } from "../../../../lib/isTouchscreenDevice";
 
 import { I18nError } from "../../../../context/Locale";
+import {
+    AppContext,
+    ClientStatus,
+    StatusContext,
+} from "../../../../context/revoltjs/RevoltClient";
+import { takeError } from "../../../../context/revoltjs/util";
 
 import ServerIcon from "../../../../components/common/ServerIcon";
-import {
-    useClient,
-    useSession,
-} from "../../../../controllers/client/ClientController";
-import { takeError } from "../../../../controllers/client/jsx/error";
 
 const EmbedInviteBase = styled.div`
     width: 400px;
@@ -76,8 +78,8 @@ type Props = {
 
 export function EmbedInvite({ code }: Props) {
     const history = useHistory();
-    const session = useSession()!;
-    const client = session.client!;
+    const client = useContext(AppContext);
+    const status = useContext(StatusContext);
     const [processing, setProcessing] = useState(false);
     const [error, setError] = useState<string | undefined>(undefined);
     const [joinError, setJoinError] = useState<string | undefined>(undefined);
@@ -88,7 +90,7 @@ export function EmbedInvite({ code }: Props) {
     useEffect(() => {
         if (
             typeof invite === "undefined" &&
-            (session.state === "Online" || session.state === "Ready")
+            (status === ClientStatus.ONLINE || status === ClientStatus.READY)
         ) {
             client
                 .fetchInvite(code)
@@ -97,7 +99,7 @@ export function EmbedInvite({ code }: Props) {
                 )
                 .catch((err) => setError(takeError(err)));
         }
-    }, [client, code, invite, session.state]);
+    }, [client, code, invite, status]);
 
     if (typeof invite === "undefined") {
         return error ? (

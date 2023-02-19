@@ -14,8 +14,9 @@ import { useAutosave } from "../../../lib/debounce";
 import { Draggable, Droppable } from "../../../lib/dnd";
 import { noop } from "../../../lib/js";
 
+import { useIntermediate } from "../../../context/intermediate/Intermediate";
+
 import ChannelIcon from "../../../components/common/ChannelIcon";
-import { modalController } from "../../../controllers/modals/ModalController";
 
 const KanbanEntry = styled.div`
     padding: 2px 4px;
@@ -332,21 +333,22 @@ function ListElement({
     index: number;
     setTitle?: (title: string) => void;
     deleteSelf?: () => void;
-    addChannel: (channel: Channel) => void;
+    addChannel: (
+        channel: Channel & { channel_type: "TextChannel" | "VoiceChannel" },
+    ) => void;
     draggable?: boolean;
 }) {
+    const { openScreen } = useIntermediate();
     const [editing, setEditing] = useState<string>();
     const startEditing = () => setTitle && setEditing(category.title);
 
     const save = useCallback(() => {
         setEditing(undefined);
-        if (editing !== "") {
-            setTitle!(editing!);
-        }
+        setTitle!(editing!);
     }, [editing, setTitle]);
 
     useEffect(() => {
-        if (editing === undefined) return;
+        if (!editing) return;
 
         function onClick(ev: MouseEvent) {
             if ((ev.target as HTMLElement)?.id !== category.id) {
@@ -370,7 +372,7 @@ function ListElement({
                         <div className="inner">
                             <Row>
                                 <KanbanListHeader {...provided.dragHandleProps}>
-                                    {editing !== undefined ? (
+                                    {editing ? (
                                         <input
                                             value={editing}
                                             onChange={(e) =>
@@ -447,7 +449,8 @@ function ListElement({
                             </Droppable>
                             <KanbanListHeader
                                 onClick={() =>
-                                    modalController.push({
+                                    openScreen({
+                                        id: "special_prompt",
                                         type: "create_channel",
                                         target: server,
                                         cb: addChannel,

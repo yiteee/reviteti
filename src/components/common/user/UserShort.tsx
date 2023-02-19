@@ -1,19 +1,16 @@
-import { TimeFive } from "@styled-icons/boxicons-regular";
 import { observer } from "mobx-react-lite";
 import { useParams } from "react-router-dom";
 import { User, API } from "revolt.js";
-import styled, { css } from "styled-components/macro";
+import styled from "styled-components/macro";
 
 import { Ref } from "preact";
 import { Text } from "preact-i18n";
 
 import { internalEmit } from "../../../lib/eventEmitter";
 
-import { dayjs } from "../../../context/Locale";
+import { useIntermediate } from "../../../context/intermediate/Intermediate";
+import { useClient } from "../../../context/revoltjs/RevoltClient";
 
-import { useClient } from "../../../controllers/client/ClientController";
-import { modalController } from "../../../controllers/modals/ModalController";
-import Tooltip from "../Tooltip";
 import UserIcon from "./UserIcon";
 
 const BotBadge = styled.div`
@@ -30,10 +27,7 @@ const BotBadge = styled.div`
     border-radius: calc(var(--border-radius) / 2);
 `;
 
-type UsernameProps = Omit<
-    JSX.HTMLAttributes<HTMLElement>,
-    "children" | "as"
-> & {
+type UsernameProps = JSX.HTMLAttributes<HTMLElement> & {
     user?: User;
     prefixAt?: boolean;
     masquerade?: API.Masquerade;
@@ -41,21 +35,6 @@ type UsernameProps = Omit<
 
     innerRef?: Ref<any>;
 };
-
-const Name = styled.span<{ colour?: string | null }>`
-    ${(props) =>
-        props.colour &&
-        (props.colour.includes("gradient")
-            ? css`
-                  background: ${props.colour};
-                  background-clip: text;
-                  -webkit-background-clip: text;
-                  -webkit-text-fill-color: transparent;
-              `
-            : css`
-                  color: ${props.colour};
-              `)}
-`;
 
 export const Username = observer(
     ({
@@ -67,8 +46,7 @@ export const Username = observer(
         ...otherProps
     }: UsernameProps) => {
         let username = user?.username;
-        let color = masquerade?.colour;
-        let timed_out: Date | undefined;
+        let color;
 
         if (user && showServerIdentity) {
             const { server } = useParams<{ server?: string }>();
@@ -88,14 +66,15 @@ export const Username = observer(
                         }
                     }
 
-                    if (member.timeout) {
-                        timed_out = member.timeout;
-                    }
-
-                    if (!color) {
-                        for (const [_, { colour }] of member.orderedRoles) {
-                            if (colour) {
-                                color = colour;
+                    if (member.roles && member.roles.length > 0) {
+                        const srv = client.servers.get(member._id.server);
+                        if (srv?.roles) {
+                            for (const role of member.roles) {
+                                const c = srv.roles[role]?.colour;
+                                if (c) {
+                                    color = c;
+                                    continue;
+                                }
                             }
                         }
                     }
@@ -103,38 +82,14 @@ export const Username = observer(
             }
         }
 
-        const el = (
-            <>
-                <Name {...otherProps} ref={innerRef} colour={color}>
-                    {prefixAt ? "@" : undefined}
-                    {masquerade?.name ?? username ?? (
-                        <Text id="app.main.channel.unknown_user" />
-                    )}
-                </Name>
-
-                {timed_out && (
-                    <Tooltip
-                        content={
-                            <Text
-                                id="app.main.channel.user_timed_out"
-                                fields={{
-                                    time: dayjs(timed_out).fromNow(true),
-                                }}
-                            />
-                        }>
-                        <TimeFive
-                            size={16}
-                            color="var(--secondary-foreground)"
-                        />
-                    </Tooltip>
-                )}
-            </>
-        );
-
         if (user?.bot) {
             return (
                 <>
-                    {el}
+                    <span {...otherProps} ref={innerRef} style={{ color }}>
+                        {masquerade?.name ?? username ?? (
+                            <Text id="app.main.channel.unknown_user" />
+                        )}
+                    </span>
                     <BotBadge>
                         {masquerade ? (
                             <Text id="app.main.channel.bridge" />
@@ -146,7 +101,14 @@ export const Username = observer(
             );
         }
 
-        return el;
+        return (
+            <span {...otherProps} ref={innerRef} style={{ color }}>
+                {prefixAt ? "@" : undefined}
+                {masquerade?.name ?? username ?? (
+                    <Text id="app.main.channel.unknown_user" />
+                )}
+            </span>
+        );
     },
 );
 
@@ -163,9 +125,9 @@ export default function UserShort({
     masquerade?: API.Masquerade;
     showServerIdentity?: boolean;
 }) {
+    const { openScreen } = useIntermediate();
     const openProfile = () =>
-        user &&
-        modalController.push({ type: "user_profile", user_id: user._id });
+        user && openScreen({ id: "profile", user_id: user._id });
 
     const handleUserClick = (e: MouseEvent) => {
         if (e.shiftKey && user?._id) {

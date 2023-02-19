@@ -10,6 +10,8 @@ The following code is pending a partial or full rewrite:
 
 -   `src/components`: components are being migrated to [revoltchat/components](https://github.com/revoltchat/components)
 -   `src/styles`: needs to be migrated to [revoltchat/components](https://github.com/revoltchat/components)
+-   `src/context/intermediate`: modal system is being rewritten from scratch
+-   `src/context/revoltjs`: client state management needs to be rewritten and include support for concurrent clients
 -   `src/lib`: this needs to be organised
 
 ## Stack
@@ -43,7 +45,6 @@ Get revite up and running locally.
 git clone --recursive https://github.com/revoltchat/revite
 cd revite
 yarn
-yarn build:deps
 yarn dev
 ```
 
@@ -56,7 +57,6 @@ You can now access the client at http://local.revolt.chat:3000.
 | `yarn pull`                             | Setup assets required for Revite.            |
 | `yarn dev`                              | Start the Revolt client in development mode. |
 | `yarn build`                            | Build the Revolt client.                     |
-| `yarn build:deps`                       | Build external dependencies.                 |
 | `yarn preview`                          | Start a local server with the built client.  |
 | `yarn lint`                             | Run ESLint on the client.                    |
 | `yarn fmt`                              | Run Prettier on the client.                  |

@@ -3,33 +3,65 @@ import { observer } from "mobx-react-lite";
 import styles from "./Panes.module.scss";
 import { Text } from "preact-i18n";
 
+import { Column } from "@revoltchat/ui";
+
 import CollapsibleSection from "../../../components/common/CollapsibleSection";
-import AdvancedOptions from "../../../components/settings/appearance/AdvancedOptions";
-import AppearanceOptions from "../../../components/settings/appearance/AppearanceOptions";
-import ChatOptions from "../../../components/settings/appearance/ChatOptions";
+import {
+    ShimThemeBaseSelector,
+    ShimThemeShop,
+    ShimThemeAccent,
+    ShimDisplayFont,
+    ShimDisplayMonospaceFont,
+    ShimDisplayLigatures,
+    ShimDisplayEmoji,
+    ShimThemeCustomCSS,
+    ShimDisplaySeasonal,
+    ShimDisplayTransparency,
+    ShimShowSendButton,
+} from "../../../components/settings/appearance/Shims";
 import ThemeOverrides from "../../../components/settings/appearance/ThemeOverrides";
-import ThemeSelection from "../../../components/settings/appearance/ThemeSelection";
+import ThemeTools from "../../../components/settings/appearance/ThemeTools";
 
 export const Appearance = observer(() => {
     return (
         <div className={styles.appearance}>
-            <ThemeSelection />
+            <ShimThemeBaseSelector />
+            <ShimThemeShop />
             <hr />
-            <AppearanceOptions />
+            <ShimThemeAccent />
             <hr />
-            <ChatOptions />
+            <h3>
+                <Text id="app.settings.pages.appearance.appearance_options.title" />
+            </h3>
+            <ShimShowSendButton />
+            <hr />
+            <h3>
+                <Text id="app.settings.pages.appearance.theme_options.title" />
+            </h3>
+            <Column>
+                <ShimDisplayTransparency />
+                <ShimDisplaySeasonal />
+            </Column>
+            <hr />
+            <ShimDisplayFont />
+            <ShimDisplayLigatures />
+            <hr />
+            <ShimDisplayEmoji />
             <hr />
             <CollapsibleSection
                 defaultValue={false}
                 id="settings_overrides"
                 summary={<Text id="app.settings.pages.appearance.overrides" />}>
+                <ThemeTools />
+                <h3>App</h3>
                 <ThemeOverrides />
             </CollapsibleSection>
             <CollapsibleSection
                 id="settings_advanced_appearance"
                 defaultValue={false}
                 summary={<Text id="app.settings.pages.appearance.advanced" />}>
-                <AdvancedOptions />
+                <ShimDisplayMonospaceFont />
+                <ShimThemeCustomCSS />
             </CollapsibleSection>
         </div>
     );

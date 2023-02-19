@@ -4,7 +4,8 @@ import styled from "styled-components/macro";
 
 import { useContext } from "preact/hooks";
 
-import { useClient } from "../../controllers/client/ClientController";
+import { AppContext } from "../../context/revoltjs/RevoltClient";
+
 import { IconBaseProps, ImageIconBase } from "./IconBase";
 
 interface Props extends IconBaseProps<Server> {
@@ -33,7 +34,7 @@ export default observer(
                 keyof Props | "children" | "as"
             >,
     ) => {
-        const client = useClient();
+        const client = useContext(AppContext);
 
         const { target, attachment, size, animate, server_name, ...imgProps } =
             props;

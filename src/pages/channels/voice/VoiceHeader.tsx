@@ -16,10 +16,11 @@ import { Button } from "@revoltchat/ui";
 
 import { voiceState, VoiceStatus } from "../../../lib/vortex/VoiceState";
 
+import { useIntermediate } from "../../../context/intermediate/Intermediate";
+import { useClient } from "../../../context/revoltjs/RevoltClient";
+
 import Tooltip from "../../../components/common/Tooltip";
 import UserIcon from "../../../components/common/user/UserIcon";
-import { useClient } from "../../../controllers/client/ClientController";
-import { modalController } from "../../../controllers/modals/ModalController";
 
 interface Props {
     id: string;
@@ -83,6 +84,8 @@ const VoiceBase = styled.div`
 export default observer(({ id }: Props) => {
     if (voiceState.roomId !== id) return null;
 
+    const { openScreen } = useIntermediate();
+
     const client = useClient();
     const self = client.users.get(client.user!._id);
 
@@ -97,27 +100,26 @@ export default observer(({ id }: Props) => {
             <div className="participants">
                 {users && users.length !== 0
                     ? users.map((user, index) => {
-                          const user_id = keys![index];
+                          const id = keys![index];
                           return (
-                              <div key={user_id}>
+                              <div key={id}>
                                   <UserIcon
                                       size={80}
                                       target={user}
                                       status={false}
                                       voice={
-                                          client.user?._id === user_id &&
+                                          client.user?._id === id &&
                                           voiceState.isDeaf()
                                               ? "deaf"
-                                              : voiceState.participants!.get(
-                                                    user_id,
-                                                )?.audio
+                                              : voiceState.participants!.get(id)
+                                                    ?.audio
                                               ? undefined
                                               : "muted"
                                       }
                                       onClick={() =>
-                                          modalController.push({
-                                              type: "user_profile",
-                                              user_id,
+                                          openScreen({
+                                              id: "profile",
+                                              user_id: id,
                                           })
                                       }
                                   />

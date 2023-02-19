@@ -15,7 +15,7 @@ import styled from "styled-components/macro";
 import styles from "./Home.module.scss";
 import "./snow.scss";
 import { Text } from "preact-i18n";
-import { useMemo } from "preact/hooks";
+import { useContext, useMemo } from "preact/hooks";
 
 import { CategoryButton } from "@revoltchat/ui";
 
@@ -23,11 +23,12 @@ import { isTouchscreenDevice } from "../../lib/isTouchscreenDevice";
 
 import { useApplicationState } from "../../mobx/State";
 
+import { useIntermediate } from "../../context/intermediate/Intermediate";
+import { AppContext } from "../../context/revoltjs/RevoltClient";
+
 import wideSVG from "/assets/wide.svg";
 
 import { PageHeader } from "../../components/ui/Header";
-import { useClient } from "../../controllers/client/ClientController";
-import { modalController } from "../../controllers/modals/ModalController";
 
 const Overlay = styled.div`
     display: grid;
@@ -43,7 +44,8 @@ const Overlay = styled.div`
 `;
 
 export default observer(() => {
-    const client = useClient();
+    const { openScreen } = useIntermediate();
+    const client = useContext(AppContext);
     const state = useApplicationState();
 
     const seasonalTheme = state.settings.get("appearance:seasonal", true);
@@ -51,37 +53,21 @@ export default observer(() => {
         state.settings.set("appearance:seasonal", !seasonalTheme);
 
     const isDecember = !isTouchscreenDevice && new Date().getMonth() === 11;
-    const isOctober = !isTouchscreenDevice && new Date().getMonth() === 9
     const snowflakes = useMemo(() => {
-        const flakes: string[] = [];
+        const flakes = [];
 
-        if (isDecember) {
-            for (let i = 0; i < 15; i++) {
-                flakes.push("❄️");
-                flakes.push("❄");
-            }
+        // Disable outside of December
+        if (!isDecember) return [];
 
-            for (let i = 0; i < 2; i++) {
-                flakes.push("🎄");
-                flakes.push("☃️");
-                flakes.push("⛄");
-            }
-
-            return flakes;
+        for (let i = 0; i < 15; i++) {
+            flakes.push("❄️");
+            flakes.push("❄");
         }
-        if (isOctober) {
-            for (let i = 0; i < 15; i++) {
-                flakes.push("🎃");
-                flakes.push("💀");
-            }
 
-            for (let i = 0; i < 2; i++) {
-                flakes.push("👻");
-                flakes.push("⚰️");
-                flakes.push("🕷️");
-            }
-
-            return flakes;
+        for (let i = 0; i < 2; i++) {
+            flakes.push("🎄");
+            flakes.push("☃️");
+            flakes.push("⛄");
         }
 
         return flakes;
@@ -112,7 +98,8 @@ export default observer(() => {
                         <div className={styles.actions}>
                             <a
                                 onClick={() =>
-                                    modalController.push({
+                                    openScreen({
+                                        id: "special_input",
                                         type: "create_group",
                                     })
                                 }>

@@ -1,47 +1,45 @@
-import { observer } from "mobx-react-lite";
-
 import { Text } from "preact-i18n";
+import { useContext } from "preact/hooks";
 
-import { Banner, Button, Column } from "@revoltchat/ui";
+import { Banner } from "@revoltchat/ui";
 
-import { useSession } from "../../../controllers/client/ClientController";
+import {
+    ClientStatus,
+    StatusContext,
+    useClient,
+} from "../../../context/revoltjs/RevoltClient";
 
-function ConnectionStatus() {
-    const session = useSession()!;
+export default function ConnectionStatus() {
+    const status = useContext(StatusContext);
+    const client = useClient();
 
-    if (session.state === "Offline") {
+    if (status === ClientStatus.OFFLINE) {
         return (
             <Banner>
                 <Text id="app.special.status.offline" />
             </Banner>
         );
-    } else if (session.state === "Disconnected") {
+    } else if (status === ClientStatus.DISCONNECTED) {
         return (
             <Banner>
-                <Column centred>
-                    <Text id="app.special.status.disconnected" />
-                    <Button
-                        compact
-                        palette="secondary"
-                        onClick={() =>
-                            session.emit({
-                                action: "RETRY",
-                            })
-                        }>
-                        <Text id="app.status.reconnect" />
-                    </Button>
-                </Column>
+                <Text id="app.special.status.disconnected" /> <br />
+                <a onClick={() => client.websocket.connect()}>
+                    <Text id="app.special.status.reconnect" />
+                </a>
             </Banner>
         );
-    } else if (session.state === "Connecting") {
+    } else if (status === ClientStatus.CONNECTING) {
+        return (
+            <Banner>
+                <Text id="app.special.status.connecting" />
+            </Banner>
+        );
+    } else if (status === ClientStatus.RECONNECTING) {
         return (
             <Banner>
                 <Text id="app.special.status.reconnecting" />
             </Banner>
         );
     }
-
     return null;
 }
-
-export default observer(ConnectionStatus);

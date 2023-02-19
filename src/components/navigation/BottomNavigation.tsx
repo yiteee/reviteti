@@ -9,7 +9,8 @@ import ConditionalLink from "../../lib/ConditionalLink";
 
 import { useApplicationState } from "../../mobx/State";
 
-import { useClient } from "../../controllers/client/ClientController";
+import { useClient } from "../../context/revoltjs/RevoltClient";
+
 import UserIcon from "../common/user/UserIcon";
 
 const Base = styled.div`

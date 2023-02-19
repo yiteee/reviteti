@@ -23,9 +23,13 @@ import { internalEmit, internalSubscribe } from "../../../lib/eventEmitter";
 import { getRenderer } from "../../../lib/renderer/Singleton";
 import { ScrollState } from "../../../lib/renderer/types";
 
-import { useSession } from "../../../controllers/client/ClientController";
-import RequiresOnline from "../../../controllers/client/jsx/RequiresOnline";
-import { modalController } from "../../../controllers/modals/ModalController";
+import { IntermediateContext } from "../../../context/intermediate/Intermediate";
+import RequiresOnline from "../../../context/revoltjs/RequiresOnline";
+import {
+    ClientStatus,
+    StatusContext,
+} from "../../../context/revoltjs/RevoltClient";
+
 import ConversationStart from "./ConversationStart";
 import MessageRenderer from "./MessageRenderer";
 
@@ -61,7 +65,8 @@ export const MESSAGE_AREA_PADDING = 82;
 
 export const MessageArea = observer(({ last_id, channel }: Props) => {
     const history = useHistory();
-    const session = useSession()!;
+    const status = useContext(StatusContext);
+    const { focusTaken } = useContext(IntermediateContext);
 
     // ? Required data for message links.
     const { message } = useParams<{ message: string }>();
@@ -208,8 +213,8 @@ export const MessageArea = observer(({ last_id, channel }: Props) => {
 
     // ? If we are waiting for network, try again.
     useEffect(() => {
-        switch (session.state) {
-            case "Online":
+        switch (status) {
+            case ClientStatus.ONLINE:
                 if (renderer.state === "WAITING_FOR_NETWORK") {
                     renderer.init();
                 } else {
@@ -217,13 +222,13 @@ export const MessageArea = observer(({ last_id, channel }: Props) => {
                 }
 
                 break;
-            case "Offline":
-            case "Disconnected":
-            case "Connecting":
+            case ClientStatus.OFFLINE:
+            case ClientStatus.DISCONNECTED:
+            case ClientStatus.CONNECTING:
                 renderer.markStale();
                 break;
         }
-    }, [renderer, session.state]);
+    }, [renderer, status]);
 
     // ? When the container is scrolled.
     // ? Also handle StayAtBottom
@@ -301,7 +306,7 @@ export const MessageArea = observer(({ last_id, channel }: Props) => {
     // ? Scroll to bottom when pressing 'Escape'.
     useEffect(() => {
         function keyUp(e: KeyboardEvent) {
-            if (e.key === "Escape" && !modalController.isVisible) {
+            if (e.key === "Escape" && !focusTaken) {
                 renderer.jumpToBottom(true);
                 internalEmit("TextArea", "focus", "message");
             }
@@ -309,7 +314,7 @@ export const MessageArea = observer(({ last_id, channel }: Props) => {
 
         document.body.addEventListener("keyup", keyUp);
         return () => document.body.removeEventListener("keyup", keyUp);
-    }, [renderer, ref]);
+    }, [renderer, ref, focusTaken]);
 
     return (
         <MessageAreaWidthContext.Provider

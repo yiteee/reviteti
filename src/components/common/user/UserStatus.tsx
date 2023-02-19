@@ -32,10 +32,6 @@ export default observer(({ user, tooltip }: Props) => {
             return <Text id="app.status.idle" />;
         }
 
-        if (user.status?.presence === "Focus") {
-            return <Text id="app.status.focus" />;
-        }
-
         if (user.status?.presence === "Invisible") {
             return <Text id="app.status.offline" />;
         }

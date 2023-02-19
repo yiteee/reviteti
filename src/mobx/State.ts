@@ -1,13 +1,11 @@
 // @ts-expect-error No typings.
 import stringify from "json-stringify-deterministic";
 import localforage from "localforage";
-import { action, makeAutoObservable, reaction, runInAction } from "mobx";
-import { Client, ClientboundNotification } from "revolt.js";
+import { makeAutoObservable, reaction, runInAction } from "mobx";
+import { Client } from "revolt.js";
 
 import { reportError } from "../lib/ErrorBoundary";
-import { injectWindow } from "../lib/window";
 
-import { clientController } from "../controllers/client/ClientController";
 import Persistent from "./interfaces/Persistent";
 import Syncable from "./interfaces/Syncable";
 import Auth from "./stores/Auth";
@@ -26,7 +24,6 @@ import Sync, { Data as DataSync, SyncKeys } from "./stores/Sync";
 
 export const MIGRATIONS = {
     REDUX: 1640305719826,
-    MULTI_SERVER_CONFIG: 1656350006152,
 };
 
 /**
@@ -39,10 +36,7 @@ export default class State {
     locale: LocaleOptions;
     experiments: Experiments;
     layout: Layout;
-    /**
-     * DEPRECATED
-     */
-    private config: ServerConfig;
+    config: ServerConfig;
     notifications: NotificationOptions;
     queue: MessageQueue;
     settings: Settings;
@@ -52,6 +46,8 @@ export default class State {
 
     private persistent: [string, Persistent<unknown>][] = [];
     private disabled: Set<string> = new Set();
+
+    client?: Client;
 
     /**
      * Construct new State.
@@ -64,21 +60,21 @@ export default class State {
         this.experiments = new Experiments();
         this.layout = new Layout();
         this.config = new ServerConfig();
-        this.notifications = new NotificationOptions(this);
+        this.notifications = new NotificationOptions();
         this.queue = new MessageQueue();
         this.settings = new Settings();
         this.sync = new Sync(this);
         this.plugins = new Plugins(this);
         this.ordering = new Ordering(this);
 
-        makeAutoObservable(this);
+        makeAutoObservable(this, {
+            client: false,
+        });
 
         this.register();
         this.setDisabled = this.setDisabled.bind(this);
-        this.onPacket = this.onPacket.bind(this);
 
-        // Inject into window
-        injectWindow("state", this);
+        this.client = undefined;
     }
 
     /**
@@ -136,48 +132,14 @@ export default class State {
     }
 
     /**
-     * Consume packets from the client.
-     * @param packet Inbound Packet
-     */
-    @action onPacket(packet: ClientboundNotification) {
-        if (packet.type === "UserSettingsUpdate") {
-            try {
-                this.sync.apply(packet.update);
-            } catch (err) {
-                reportError(err as any, "failed_sync_apply");
-            }
-        }
-    }
-
-    /**
      * Register reaction listeners for persistent data stores.
      * @returns Function to dispose of listeners
      */
     registerListeners(client?: Client) {
         // If a client is present currently, expose it and provide it to plugins.
         if (client) {
-            // Register message listener for clearing queue.
-            client.addListener("message", this.queue.onMessage);
-
-            // Register listener for incoming packets.
-            client.addListener("packet", this.onPacket);
-
-            // Register events for notifications.
-            client.addListener("message", this.notifications.onMessage);
-            client.addListener(
-                "user/relationship",
-                this.notifications.onRelationship,
-            );
-            document.addEventListener(
-                "visibilitychange",
-                this.notifications.onVisibilityChange,
-            );
-
-            // Sync settings from remote server.
-            state.sync
-                .pull(client)
-                .catch(console.error)
-                .finally(() => state.changelog.checkForUpdates());
+            this.client = client;
+            this.plugins.onClient(client);
         }
 
         // Register all the listeners required for saving and syncing state.
@@ -263,20 +225,8 @@ export default class State {
         });
 
         return () => {
-            // Remove any listeners attached to client.
-            if (client) {
-                client.removeListener("message", this.queue.onMessage);
-                client.removeListener("packet", this.onPacket);
-                client.removeListener("message", this.notifications.onMessage);
-                client.removeListener(
-                    "user/relationship",
-                    this.notifications.onRelationship,
-                );
-                document.removeEventListener(
-                    "visibilitychange",
-                    this.notifications.onVisibilityChange,
-                );
-            }
+            // Stop exposing the client.
+            this.client = undefined;
 
             // Wipe all listeners.
             listeners.forEach((x) => x());
@@ -303,9 +253,6 @@ export default class State {
 
         // Post-hydration, init plugins.
         this.plugins.init();
-
-        // Push authentication information forwards to client controller.
-        clientController.hydrate(this.auth);
     }
 
     /**
@@ -316,7 +263,7 @@ export default class State {
             this.draft = new Draft();
             this.experiments = new Experiments();
             this.layout = new Layout();
-            this.notifications = new NotificationOptions(this);
+            this.notifications = new NotificationOptions();
             this.queue = new MessageQueue();
             this.settings = new Settings();
             this.sync = new Sync(this);
@@ -330,7 +277,13 @@ export default class State {
     }
 }
 
-export const state = new State();
+let state: State;
+
+export async function hydrateState() {
+    state = new State();
+    (window as any).state = state;
+    await state.hydrate();
+}
 
 /**
  * Get the application state

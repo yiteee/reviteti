@@ -4,8 +4,9 @@ import styles from "./Embed.module.scss";
 import classNames from "classnames";
 import { useContext } from "preact/hooks";
 
-import { useClient } from "../../../../controllers/client/ClientController";
-import { modalController } from "../../../../controllers/modals/ModalController";
+import { useIntermediate } from "../../../../context/intermediate/Intermediate";
+import { useClient } from "../../../../context/revoltjs/RevoltClient";
+
 import { MessageAreaWidthContext } from "../../../../pages/channels/messaging/MessageArea";
 import Markdown from "../../../markdown/Markdown";
 import Attachment from "../attachments/Attachment";
@@ -23,6 +24,7 @@ const MAX_PREVIEW_SIZE = 150;
 export default function Embed({ embed }: Props) {
     const client = useClient();
 
+    const { openScreen, openLink } = useIntermediate();
     const maxWidth = Math.min(
         useContext(MessageAreaWidthContext) - CONTAINER_PADDING,
         MAX_EMBED_WIDTH,
@@ -67,8 +69,7 @@ export default function Embed({ embed }: Props) {
                         break;
                     }
                     case "Twitch":
-                    case "Lightspeed":
-                    case "Streamable": {
+                    case "Lightspeed": {
                         mw = 1280;
                         mh = 720;
                         break;
@@ -142,7 +143,7 @@ export default function Embed({ embed }: Props) {
                                 <a
                                     onMouseDown={(ev) =>
                                         (ev.button === 0 || ev.button === 1) &&
-                                        modalController.openLink(embed.url!)
+                                        openLink(embed.url!)
                                     }
                                     className={styles.title}>
                                     {embed.title}
@@ -190,12 +191,8 @@ export default function Embed({ embed }: Props) {
                     type="text/html"
                     frameBorder="0"
                     loading="lazy"
-                    onClick={() =>
-                        modalController.push({ type: "image_viewer", embed })
-                    }
-                    onMouseDown={(ev) =>
-                        ev.button === 1 && modalController.openLink(embed.url)
-                    }
+                    onClick={() => openScreen({ id: "image_viewer", embed })}
+                    onMouseDown={(ev) => ev.button === 1 && openLink(embed.url)}
                 />
             );
         }

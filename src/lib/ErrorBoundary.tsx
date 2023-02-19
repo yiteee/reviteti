@@ -5,32 +5,18 @@ import styled from "styled-components/macro";
 
 import { useEffect, useErrorBoundary, useState } from "preact/hooks";
 
-import { Button } from "@revoltchat/ui";
-
 import { GIT_REVISION } from "../revision";
 
 const CrashContainer = styled.div`
-    // defined for the Button component
-    --error: #ed4245;
-    --primary-background: #2d2d2d;
-
     height: 100%;
     padding: 12px;
 
-    background: #191919;
+    background: black;
     color: white;
 
     h3 {
         margin: 0;
         margin-bottom: 12px;
-    }
-
-    code {
-        font-size: 1.1em;
-    }
-
-    .buttonDivider {
-        margin: 8px;
     }
 `;
 
@@ -79,17 +65,15 @@ export default function ErrorBoundary({ children, section }: Props) {
                 {section === "client" ? (
                     <>
                         <h3>Client Crash Report</h3>
-                        <Button onClick={ignoreError}>
+                        <button onClick={ignoreError}>
                             Ignore error and try to reload app
-                        </Button>
-                        <div class="buttonDivider" />
-                        <Button onClick={() => location.reload()}>
-                            Refresh page
-                        </Button>
-                        <div class="buttonDivider" />
-                        <Button palette="error" onClick={reset}>
+                        </button>
+                        <button onClick={reset}>
                             {confirm ? "Are you sure?" : "Reset all app data"}
-                        </Button>
+                        </button>
+                        <button onClick={() => location.reload()}>
+                            Refresh page
+                        </button>
                     </>
                 ) : (
                     <>
@@ -99,9 +83,6 @@ export default function ErrorBoundary({ children, section }: Props) {
                         </button>
                     </>
                 )}
-                <br />
-                <br />
-                <div>Revolt has crashed. Here's the error:</div>
                 <pre>
                     <code>{error?.stack}</code>
                 </pre>

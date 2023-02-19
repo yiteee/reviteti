@@ -13,8 +13,9 @@ import { isTouchscreenDevice } from "../../lib/isTouchscreenDevice";
 
 import { useApplicationState } from "../../mobx/State";
 
+import { modalController } from "../../context/modals";
+
 import ButtonItem from "../../components/navigation/items/ButtonItem";
-import { modalController } from "../../controllers/modals/ModalController";
 
 interface Props {
     pages: {

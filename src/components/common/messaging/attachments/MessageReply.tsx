@@ -221,15 +221,13 @@ export const MessageReply = observer(
                                             </em>
                                         </>
                                     )}
-                                    {message.content && (
-                                        <Markdown
-                                            disallowBigEmoji
-                                            content={message.content.replace(
-                                                /\n/g,
-                                                " ",
-                                            )}
-                                        />
-                                    )}
+                                    <Markdown
+                                        disallowBigEmoji
+                                        content={message.content?.replace(
+                                            /\n/g,
+                                            " ",
+                                        )}
+                                    />
                                 </div>
                             </>
                         )}

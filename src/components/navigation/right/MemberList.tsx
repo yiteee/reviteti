@@ -8,7 +8,11 @@ import { memo } from "preact/compat";
 
 import { internalEmit } from "../../../lib/eventEmitter";
 
-import { modalController } from "../../../controllers/modals/ModalController";
+import {
+    Screen,
+    useIntermediate,
+} from "../../../context/intermediate/Intermediate";
+
 import { UserButton } from "../items/ButtonItem";
 
 export type MemberListGroup = {
@@ -51,7 +55,15 @@ const NoOomfie = styled.div`
 `;
 
 const ItemContent = memo(
-    ({ item, context }: { item: User; context: Channel }) => (
+    ({
+        item,
+        context,
+        openScreen,
+    }: {
+        item: User;
+        context: Channel;
+        openScreen: (screen: Screen) => void;
+    }) => (
         <UserButton
             key={item._id}
             user={item}
@@ -65,12 +77,13 @@ const ItemContent = memo(
                         `<@${item._id}>`,
                         "mention",
                     );
-                } else {
-                    modalController.push({
-                        type: "user_profile",
-                        user_id: item._id,
-                    });
-                }
+                } else
+                    [
+                        openScreen({
+                            id: "profile",
+                            user_id: item._id,
+                        }),
+                    ];
             }}
         />
     ),
@@ -83,6 +96,8 @@ export default function MemberList({
     entries: MemberListGroup[];
     context: Channel;
 }) {
+    const { openScreen } = useIntermediate();
+
     return (
         <GroupedVirtuoso
             groupCounts={entries.map((x) => x.users.length)}
@@ -99,7 +114,7 @@ export default function MemberList({
                         )}
                         {entry.type !== "no_offline" && (
                             <>
-                                {" – "}
+                                {" - "}
                                 {entry.users.length}
                             </>
                         )}
@@ -118,20 +133,19 @@ export default function MemberList({
                     return (
                         <NoOomfie>
                             <div>
-                                Offline users have temporarily been disabled for
-                                larger servers - see{" "}
+                                Offline users temporarily disabled for this
+                                server, see issue{" "}
                                 <a
-                                    href="https://github.com/revoltchat/backend/issues/178"
-                                    target="_blank"
-                                    rel="noreferrer">
-                                    issue #178
+                                    href="https://github.com/revoltchat/delta/issues/128"
+                                    target="_blank" rel="noreferrer">
+                                    #128
                                 </a>{" "}
                                 for when this will be resolved.
                             </div>
                             <div>
-                                You may re-enable them{" "}
+                                You may re-enable them in{" "}
                                 <Link to="/settings/experiments">
-                                    <a>here</a>
+                                    <a>experiments</a>
                                 </Link>
                                 .
                             </div>
@@ -144,7 +158,11 @@ export default function MemberList({
 
                 return (
                     <div>
-                        <ItemContent item={item} context={context} />
+                        <ItemContent
+                            item={item}
+                            context={context}
+                            openScreen={openScreen}
+                        />
                     </div>
                 );
             }}

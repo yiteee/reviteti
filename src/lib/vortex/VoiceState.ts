@@ -1,5 +1,6 @@
 import { action, makeAutoObservable, runInAction } from "mobx";
-import { Channel, Nullable, toNullable } from "revolt.js";
+import { Channel } from "revolt.js";
+import { Nullable, toNullable } from "revolt.js";
 
 import type { ProduceType, VoiceUser } from "./Types";
 import type VoiceClient from "./VoiceClient";

@@ -4,20 +4,22 @@ import { useEffect, useState } from "preact/hooks";
 
 import { Category, Preloader } from "@revoltchat/ui";
 
-import { I18nError } from "../../../context/Locale";
+import { useApplicationState } from "../../../mobx/State";
 
-import { useApi } from "../../../controllers/client/ClientController";
-import { takeError } from "../../../controllers/client/jsx/error";
+import { I18nError } from "../../../context/Locale";
+import { takeError } from "../../../context/revoltjs/util";
+
 import { Form } from "./Form";
 
 export function FormResend() {
-    const api = useApi();
+    const config = useApplicationState().config;
+    const client = config.createClient();
 
     return (
         <Form
             page="resend"
             callback={async (data) => {
-                await api.post("/auth/account/reverify", data);
+                await client.api.post("/auth/account/reverify", data);
             }}
         />
     );
@@ -26,11 +28,13 @@ export function FormResend() {
 export function FormVerify() {
     const [error, setError] = useState<undefined | string>(undefined);
     const { token } = useParams<{ token: string }>();
+    const config = useApplicationState().config;
+    const client = config.createClient();
     const history = useHistory();
-    const api = useApi();
 
     useEffect(() => {
-        api.post(`/auth/account/verify/${token as ""}`)
+        client.api
+            .post(`/auth/account/verify/${token as ""}`)
             .then(() => history.push("/login"))
             .catch((err) => setError(takeError(err)));
         // eslint-disable-next-line

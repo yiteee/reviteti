@@ -7,7 +7,8 @@ import { useEffect, useState } from "preact/hooks";
 
 import { internalEmit, internalSubscribe } from "./lib/eventEmitter";
 
-import { modalController } from "./controllers/modals/ModalController";
+import { modalController } from "./context/modals";
+
 import { APP_VERSION } from "./version";
 
 const INTERVAL_HOUR = 36e5;

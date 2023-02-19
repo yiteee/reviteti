@@ -29,10 +29,10 @@ export interface RendererRoutines {
     ) => Promise<void>;
 
     receive: (renderer: ChannelRenderer, message: Message) => Promise<void>;
-    updated: (
+    edit: (
         renderer: ChannelRenderer,
         id: string,
-        message: Message,
+        partial: Partial<Message>,
     ) => Promise<void>;
     delete: (renderer: ChannelRenderer, id: string) => Promise<void>;
 

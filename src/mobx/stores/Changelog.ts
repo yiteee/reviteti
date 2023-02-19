@@ -1,7 +1,8 @@
 import { action, makeAutoObservable, runInAction } from "mobx";
 
+import { modalController } from "../../context/modals";
+
 import { latestChangelog } from "../../assets/changelogs";
-import { modalController } from "../../controllers/modals/ModalController";
 import Persistent from "../interfaces/Persistent";
 import Store from "../interfaces/Store";
 import Syncable from "../interfaces/Syncable";

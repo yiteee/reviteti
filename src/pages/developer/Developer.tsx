@@ -1,19 +1,18 @@
 import { Wrench } from "@styled-icons/boxicons-solid";
 
-import { useEffect, useState } from "preact/hooks";
-
-import { Button } from "@revoltchat/ui";
+import { useContext, useEffect, useState } from "preact/hooks";
 
 import PaintCounter from "../../lib/PaintCounter";
 import { TextReact } from "../../lib/i18n";
 
+import { AppContext } from "../../context/revoltjs/RevoltClient";
+
 import { PageHeader } from "../../components/ui/Header";
-import { useClient } from "../../controllers/client/ClientController";
 
 export default function Developer() {
     // const voice = useContext(VoiceContext);
 
-    const client = useClient();
+    const client = useContext(AppContext);
     const userPermission = client.user!.permission;
     const [ping, setPing] = useState<undefined | number>(client.websocket.ping);
     const [crash, setCrash] = useState(false);
@@ -45,17 +44,9 @@ export default function Developer() {
                     fields={{ provider: <b>GAMING!</b> }}
                 />
             </div>
-
             <div style={{ padding: "16px" }}>
-                <Button palette="error" onClick={() => setCrash(true)}>
-                    Click to crash app
-                </Button>
-                {
-                    crash &&
-                        (
-                            window as any
-                        ).sus.sus() /* this runs a function that doesn't exist */
-                }
+                <a onClick={() => setCrash(true)}>click to crash app</a>
+                {crash && (window as any).sus.sus()}
                 {/*<span>
                     <b>Voice Status:</b> {VoiceStatus[voice.status]}
                 </span>

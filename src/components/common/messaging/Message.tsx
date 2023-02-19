@@ -5,7 +5,7 @@ import { useTriggerEvents } from "preact-context-menu";
 import { memo } from "preact/compat";
 import { useEffect, useState } from "preact/hooks";
 
-import { Category, Button } from "@revoltchat/ui";
+import { Category } from "@revoltchat/ui";
 
 import { internalEmit } from "../../../lib/eventEmitter";
 import { isTouchscreenDevice } from "../../../lib/isTouchscreenDevice";
@@ -13,8 +13,9 @@ import { isTouchscreenDevice } from "../../../lib/isTouchscreenDevice";
 import { QueuedMessage } from "../../../mobx/stores/MessageQueue";
 
 import { I18nError } from "../../../context/Locale";
+import { useIntermediate } from "../../../context/intermediate/Intermediate";
+import { useClient } from "../../../context/revoltjs/RevoltClient";
 
-import { modalController } from "../../../controllers/modals/ModalController";
 import Markdown from "../../markdown/Markdown";
 import UserIcon from "../user/UserIcon";
 import { Username } from "../user/UserShort";
@@ -25,7 +26,6 @@ import MessageBase, {
 } from "./MessageBase";
 import Attachment from "./attachments/Attachment";
 import { MessageReply } from "./attachments/MessageReply";
-import { Reactions } from "./attachments/Reactions";
 import { MessageOverlayBar } from "./bars/MessageOverlayBar";
 import Embed from "./embed/Embed";
 import InviteList from "./embed/EmbedInvite";
@@ -52,8 +52,10 @@ const Message = observer(
         queued,
         hideReply,
     }: Props) => {
-        const client = message.client;
+        const client = useClient();
         const user = message.author;
+
+        const { openScreen } = useIntermediate();
 
         const content = message.content;
         const head =
@@ -68,10 +70,7 @@ const Message = observer(
             : undefined;
 
         const openProfile = () =>
-            modalController.push({
-                type: "user_profile",
-                user_id: message.author_id,
-            });
+            openScreen({ id: "profile", user_id: message.author_id });
 
         const handleUserClick = (e: MouseEvent) => {
             if (e.shiftKey && user?._id) {
@@ -88,7 +87,6 @@ const Message = observer(
 
         // ! FIXME(?): animate on hover
         const [mouseHovering, setAnimate] = useState(false);
-        const [reactionsOpen, setReactionsOpen] = useState(false);
         useEffect(() => setAnimate(false), [replacement]);
 
         return (
@@ -117,11 +115,7 @@ const Message = observer(
                     }
                     contrast={contrast}
                     sending={typeof queued !== "undefined"}
-                    mention={
-                        message.mention_ids && client.user
-                            ? message.mention_ids.includes(client.user._id)
-                            : undefined
-                    }
+                    mention={message.mention_ids?.includes(client.user!._id)}
                     failed={typeof queued?.error !== "undefined"}
                     {...(attachContext
                         ? useTriggerEvents("Menu", {
@@ -165,8 +159,7 @@ const Message = observer(
                                 />
                             </span>
                         )}
-                        {replacement ??
-                            (content && <Markdown content={content} />)}
+                        {replacement ?? <Markdown content={content} />}
                         {!queued && <InviteList message={message} />}
                         {queued?.error && (
                             <Category>
@@ -186,13 +179,10 @@ const Message = observer(
                         {message.embeds?.map((embed, index) => (
                             <Embed key={index} embed={embed} />
                         ))}
-                        <Reactions message={message} />
-                        {(mouseHovering || reactionsOpen) &&
+                        {mouseHovering &&
                             !replacement &&
                             !isTouchscreenDevice && (
                                 <MessageOverlayBar
-                                    reactionsOpen={reactionsOpen}
-                                    setReactionsOpen={setReactionsOpen}
                                     message={message}
                                     queued={queued}
                                 />

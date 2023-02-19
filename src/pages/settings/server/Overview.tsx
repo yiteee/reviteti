@@ -12,8 +12,8 @@ import { Button, ComboBox, InputBox } from "@revoltchat/ui";
 import TextAreaAutoSize from "../../../lib/TextAreaAutoSize";
 import { noop } from "../../../lib/js";
 
-import { ChannelName } from "../../../controllers/client/jsx/ChannelName";
-import { FileUploader } from "../../../controllers/client/jsx/legacy/FileUploads";
+import { FileUploader } from "../../../context/revoltjs/FileUploads";
+import { getChannelName } from "../../../context/revoltjs/util";
 
 interface Props {
     server: Server;
@@ -96,14 +96,14 @@ export const Overview = observer(({ server }: Props) => {
             <div className={styles.markdown}>
                 <Markdown size="24" />
                 <h5>
-                    {"Server descriptions support Markdown formatting. "}
+                    Descriptions support Markdown formatting,{" "}
                     <a
-                        href="https://support.revolt.chat/kb/interface/messages/formatting-your-messages"
+                        href="https://developers.revolt.chat/markdown"
                         target="_blank"
                         rel="noreferrer">
-                        {"Learn more here"}
+                        learn more here
                     </a>
-                    {"."}
+                    .
                 </h5>
             </div>
             <hr />
@@ -172,7 +172,7 @@ export const Overview = observer(({ server }: Props) => {
                             )
                             .map((channel) => (
                                 <option key={channel!._id} value={channel!._id}>
-                                    <ChannelName channel={channel} prefix />
+                                    {getChannelName(channel!, true)}
                                 </option>
                             ))}
                     </ComboBox>

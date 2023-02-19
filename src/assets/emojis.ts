@@ -151,6 +151,7 @@ export const emojiDictionary = {
     hole: "🕳️",
     bomb: "💣",
     speech_balloon: "💬",
+    eye_speech_bubble: "👁️‍🗨️",
     left_speech_bubble: "🗨️",
     right_anger_bubble: "🗯️",
     thought_balloon: "💭",
@@ -1951,6 +1952,5 @@ export const emojiDictionary = {
         huggies: "custom:huggies.png",
         noted: "custom:noted.gif",
         waving: "custom:waving.png",
-        mogusvented: "custom:mogusvented.png",
     },
 };

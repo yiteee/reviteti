@@ -24,7 +24,7 @@ export function Feedback() {
                 </CategoryButton>
             </a>
             <a
-                href="https://github.com/revoltchat/revite/issues/new/choose"
+                href="https://github.com/revoltchat/revite/issues/new"
                 target="_blank"
                 rel="noreferrer">
                 <CategoryButton
@@ -37,7 +37,7 @@ export function Feedback() {
                 </CategoryButton>
             </a>
             <a
-                href="https://github.com/orgs/revoltchat/projects/3"
+                href="https://github.com/orgs/revoltchat/projects/1"
                 target="_blank"
                 rel="noreferrer">
                 <CategoryButton
@@ -55,7 +55,7 @@ export function Feedback() {
                         action="chevron"
                         icon={<Group size={24} />}
                         description="You can report issues and discuss improvements with us directly here.">
-                        {"Join the Revolt Lounge"}
+                        Join Testers server.
                     </CategoryButton>
                 </a>
             </Link>

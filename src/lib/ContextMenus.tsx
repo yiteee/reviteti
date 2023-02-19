@@ -19,6 +19,7 @@ import {
     openContextMenu,
 } from "preact-context-menu";
 import { Text } from "preact-i18n";
+import { useContext } from "preact/hooks";
 
 import { IconButton, LineDivider } from "@revoltchat/ui";
 
@@ -26,13 +27,18 @@ import { useApplicationState } from "../mobx/State";
 import { QueuedMessage } from "../mobx/stores/MessageQueue";
 import { NotificationState } from "../mobx/stores/NotificationOptions";
 
+import { Screen, useIntermediate } from "../context/intermediate/Intermediate";
+import { modalController } from "../context/modals";
+import {
+    AppContext,
+    ClientStatus,
+    StatusContext,
+} from "../context/revoltjs/RevoltClient";
+import { takeError } from "../context/revoltjs/util";
 import CMNotifications from "./contextmenu/CMNotifications";
 
 import Tooltip from "../components/common/Tooltip";
 import UserStatus from "../components/common/user/UserStatus";
-import { useSession } from "../controllers/client/ClientController";
-import { takeError } from "../controllers/client/jsx/error";
-import { modalController } from "../controllers/modals/ModalController";
 import { internalEmit } from "./eventEmitter";
 import { getRenderer } from "./renderer/Singleton";
 
@@ -69,10 +75,9 @@ type Action =
     | { action: "copy_file_link"; attachment: API.File }
     | { action: "open_link"; link: string }
     | { action: "copy_link"; link: string }
-    | { action: "make_owner"; channel: Channel; user: User }
     | { action: "remove_member"; channel: Channel; user: User }
-    | { action: "kick_member"; target: Member }
-    | { action: "ban_member"; target: Member }
+    | { action: "kick_member"; target: Server; user: User }
+    | { action: "ban_member"; target: Server; user: User }
     | { action: "view_profile"; user: User }
     | { action: "message_user"; user: User }
     | { action: "block_user"; user: User }
@@ -116,12 +121,13 @@ type Action =
 // ! FIXME: I dare someone to re-write this
 // Tip: This should just be split into separate context menus per logical area.
 export default function ContextMenus() {
-    const session = useSession()!;
-    const client = session.client!;
+    const { openScreen, writeClipboard } = useIntermediate();
+    const client = useContext(AppContext);
     const userId = client.user!._id;
+    const status = useContext(StatusContext);
+    const isOnline = status === ClientStatus.ONLINE;
     const state = useApplicationState();
     const history = useHistory();
-    const isOnline = session.state === "Online";
 
     function contextClick(data?: Action) {
         if (typeof data === "undefined") return;
@@ -129,7 +135,7 @@ export default function ContextMenus() {
         (async () => {
             switch (data.action) {
                 case "copy_id":
-                    modalController.writeText(data.id);
+                    writeClipboard(data.id);
                     break;
                 case "copy_message_link":
                     {
@@ -138,13 +144,11 @@ export default function ContextMenus() {
                         if (channel?.channel_type === "TextChannel")
                             pathname = `/server/${channel.server_id}${pathname}`;
 
-                        modalController.writeText(window.origin + pathname);
+                        writeClipboard(window.origin + pathname);
                     }
                     break;
                 case "copy_selection":
-                    modalController.writeText(
-                        document.getSelection()?.toString() ?? "",
-                    );
+                    writeClipboard(document.getSelection()?.toString() ?? "");
                     break;
                 case "mark_as_read":
                     {
@@ -228,7 +232,7 @@ export default function ContextMenus() {
                     break;
 
                 case "copy_text":
-                    modalController.writeText(data.content);
+                    writeClipboard(data.content);
                     break;
 
                 case "reply_message":
@@ -287,7 +291,7 @@ export default function ContextMenus() {
                 case "copy_file_link":
                     {
                         const { filename } = data.attachment;
-                        modalController.writeText(
+                        writeClipboard(
                             // ! FIXME: do from r.js
                             `${client.generateFileURL(
                                 data.attachment,
@@ -304,16 +308,7 @@ export default function ContextMenus() {
 
                 case "copy_link":
                     {
-                        modalController.writeText(data.link);
-                    }
-                    break;
-
-                case "make_owner":
-                    {
-                        // FIXME: add a modal for this
-                        data.channel.edit({
-                            owner: data.user._id,
-                        });
+                        writeClipboard(data.link);
                     }
                     break;
 
@@ -324,10 +319,7 @@ export default function ContextMenus() {
                     break;
 
                 case "view_profile":
-                    modalController.push({
-                        type: "user_profile",
-                        user_id: data.user._id,
-                    });
+                    openScreen({ id: "profile", user_id: data.user._id });
                     break;
 
                 case "message_user":
@@ -346,7 +338,8 @@ export default function ContextMenus() {
                     break;
 
                 case "block_user":
-                    modalController.push({
+                    openScreen({
+                        id: "special_prompt",
                         type: "block_user",
                         target: data.user,
                     });
@@ -355,7 +348,8 @@ export default function ContextMenus() {
                     await data.user.unblockUser();
                     break;
                 case "remove_friend":
-                    modalController.push({
+                    openScreen({
+                        id: "special_prompt",
                         type: "unfriend_user",
                         target: data.user,
                     });
@@ -376,40 +370,33 @@ export default function ContextMenus() {
                     break;
 
                 case "set_status":
-                    modalController.push({
-                        type: "custom_status",
+                    openScreen({
+                        id: "special_input",
+                        type: "set_custom_status",
                     });
                     break;
 
                 case "clear_status":
-                    await client.users.edit({ remove: ["StatusText"] });
-                    break;
-
-                case "delete_message":
-                    modalController.push({
-                        type: "delete_message",
-                        target: data.target,
-                    });
+                    {
+                        await client.users.edit({ remove: ["StatusText"] });
+                    }
                     break;
 
                 case "leave_group":
                 case "close_dm":
-                case "delete_channel":
-                case "create_invite":
-                    modalController.push({
-                        type: data.action,
-                        target: data.target,
-                    });
-                    break;
-
                 case "leave_server":
+                case "delete_channel":
                 case "delete_server":
+                case "delete_message":
                 case "create_channel":
                 case "create_category":
-                    modalController.push({
+                case "create_invite":
+                    // Typescript flattens the case types into a single type and type structure and specifity is lost
+                    openScreen({
+                        id: "special_prompt",
                         type: data.action,
                         target: data.target,
-                    });
+                    } as unknown as Screen);
                     break;
 
                 case "edit_identity":
@@ -421,9 +408,11 @@ export default function ContextMenus() {
 
                 case "ban_member":
                 case "kick_member":
-                    modalController.push({
+                    openScreen({
+                        id: "special_prompt",
                         type: data.action,
-                        member: data.target,
+                        target: data.target,
+                        user: data.user,
                     });
                     break;
 
@@ -638,26 +627,14 @@ export default function ContextMenus() {
                             });
                         }
 
-                        if (user._id !== userId) {
-                            if (userPermissions & UserPermission.SendMessage) {
-                                generateAction({
-                                    action: "message_user",
-                                    user,
-                                });
-                            } else {
-                                elements.push(
-                                    <MenuItem disabled={true}>
-                                        <Tooltip
-                                            content="Must be friends with this user to message them."
-                                            placement="left"
-                                            hideOnClick={false}>
-                                            <Text
-                                                id={`app.context_menu.message_user`}
-                                            />
-                                        </Tooltip>
-                                    </MenuItem>,
-                                );
-                            }
+                        if (
+                            user._id !== userId &&
+                            userPermissions & UserPermission.SendMessage
+                        ) {
+                            generateAction({
+                                action: "message_user",
+                                user,
+                            });
                         }
 
                         for (let i = 0; i < actions.length; i++) {
@@ -677,29 +654,11 @@ export default function ContextMenus() {
                                 contextualChannel.owner_id === userId &&
                                 userId !== uid
                             ) {
-                                generateAction(
-                                    {
-                                        action: "make_owner",
-                                        channel: contextualChannel,
-                                        user: user!,
-                                    },
-                                    undefined,
-                                    false,
-                                    undefined,
-                                    "var(--error)",
-                                );
-
-                                generateAction(
-                                    {
-                                        action: "remove_member",
-                                        channel: contextualChannel,
-                                        user: user!,
-                                    },
-                                    undefined,
-                                    false,
-                                    undefined,
-                                    "var(--error)",
-                                );
+                                generateAction({
+                                    action: "remove_member",
+                                    channel: contextualChannel,
+                                    user: user!,
+                                });
                             }
                         }
 
@@ -709,36 +668,31 @@ export default function ContextMenus() {
                             userId !== uid &&
                             uid !== server.owner
                         ) {
-                            const member = client.members.getKey({
-                                server: server._id,
-                                user: user!._id,
-                            })!;
+                            if (serverPermissions & Permission.KickMembers)
+                                generateAction(
+                                    {
+                                        action: "kick_member",
+                                        target: server,
+                                        user: user!,
+                                    },
+                                    undefined, // this is needed because generateAction uses positional, not named parameters
+                                    undefined,
+                                    null,
+                                    "var(--error)", // the only relevant part really
+                                );
 
-                            if (member) {
-                                if (serverPermissions & Permission.KickMembers)
-                                    generateAction(
-                                        {
-                                            action: "kick_member",
-                                            target: member,
-                                        },
-                                        undefined, // this is needed because generateAction uses positional, not named parameters
-                                        undefined,
-                                        null,
-                                        "var(--error)", // the only relevant part really
-                                    );
-
-                                if (serverPermissions & Permission.BanMembers)
-                                    generateAction(
-                                        {
-                                            action: "ban_member",
-                                            target: member,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        null,
-                                        "var(--error)",
-                                    );
-                            }
+                            if (serverPermissions & Permission.BanMembers)
+                                generateAction(
+                                    {
+                                        action: "ban_member",
+                                        target: server,
+                                        user: user!,
+                                    },
+                                    undefined,
+                                    undefined,
+                                    null,
+                                    "var(--error)",
+                                );
                         }
                     }
 
@@ -974,10 +928,6 @@ export default function ContextMenus() {
                             }
                         }
 
-                        // workaround to prevent button duplication
-                        let hideIDButton;
-                        if (sid && server) hideIDButton = true;
-
                         if (sid && server) {
                             generateAction(
                                 {
@@ -1019,28 +969,15 @@ export default function ContextMenus() {
                                     "open_server_settings",
                                 );
 
-                            // workaround to move this above the delete/leave button
-                            generateAction(
-                                { action: "copy_id", id },
-                                "copy_sid",
-                            );
-
-                            pushDivider();
                             if (userId === server.owner) {
                                 generateAction(
                                     { action: "delete_server", target: server },
                                     "delete_server",
-                                    undefined,
-                                    undefined,
-                                    "var(--error)",
                                 );
                             } else {
                                 generateAction(
                                     { action: "leave_server", target: server },
                                     "leave_server",
-                                    undefined,
-                                    undefined,
-                                    "var(--error)",
                                 );
                             }
                         }
@@ -1052,16 +989,16 @@ export default function ContextMenus() {
                             });
                         }
 
-                        if (!hideIDButton) {
-                            generateAction(
-                                { action: "copy_id", id },
-                                cid
-                                    ? "copy_cid"
-                                    : message
-                                    ? "copy_mid"
-                                    : "copy_uid",
-                            );
-                        }
+                        generateAction(
+                            { action: "copy_id", id },
+                            sid
+                                ? "copy_sid"
+                                : cid
+                                ? "copy_cid"
+                                : message
+                                ? "copy_mid"
+                                : "copy_uid",
+                        );
                     }
 
                     return elements;
@@ -1080,7 +1017,7 @@ export default function ContextMenus() {
                                     <div
                                         className="username"
                                         onClick={() =>
-                                            modalController.writeText(
+                                            writeClipboard(
                                                 client.user!.username,
                                             )
                                         }>
@@ -1126,15 +1063,6 @@ export default function ContextMenus() {
                                 disabled={!isOnline}>
                                 <div className="indicator idle" />
                                 <Text id={`app.status.idle`} />
-                            </MenuItem>
-                            <MenuItem
-                                data={{
-                                    action: "set_presence",
-                                    presence: "Focus",
-                                }}
-                                disabled={!isOnline}>
-                                <div className="indicator focus" />
-                                <Text id={`app.status.focus`} />
                             </MenuItem>
                             <MenuItem
                                 data={{

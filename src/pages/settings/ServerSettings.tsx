@@ -6,7 +6,6 @@ import {
     Envelope,
     UserX,
     Trash,
-    HappyBeaming,
 } from "@styled-icons/boxicons-solid";
 import { observer } from "mobx-react-lite";
 import { Route, Switch, useHistory, useParams } from "react-router-dom";
@@ -16,22 +15,21 @@ import { Text } from "preact-i18n";
 
 import { LineDivider } from "@revoltchat/ui";
 
-import { state } from "../../mobx/State";
+import { useIntermediate } from "../../context/intermediate/Intermediate";
+import RequiresOnline from "../../context/revoltjs/RequiresOnline";
+import { useClient } from "../../context/revoltjs/RevoltClient";
 
 import ButtonItem from "../../components/navigation/items/ButtonItem";
-import { useClient } from "../../controllers/client/ClientController";
-import RequiresOnline from "../../controllers/client/jsx/RequiresOnline";
-import { modalController } from "../../controllers/modals/ModalController";
 import { GenericSettings } from "./GenericSettings";
 import { Bans } from "./server/Bans";
 import { Categories } from "./server/Categories";
-import { Emojis } from "./server/Emojis";
 import { Invites } from "./server/Invites";
 import { Members } from "./server/Members";
 import { Overview } from "./server/Overview";
 import { Roles } from "./server/Roles";
 
 export default observer(() => {
+    const { openScreen } = useIntermediate();
     const { server: sid } = useParams<{ server: string }>();
     const client = useClient();
     const server = client.servers.get(sid);
@@ -71,15 +69,6 @@ export default observer(() => {
                     icon: <FlagAlt size={20} />,
                     title: <Text id="app.settings.server_pages.roles.title" />,
                     hideTitle: true,
-                },
-                {
-                    category: (
-                        <Text id="app.settings.server_pages.customisation.title" />
-                    ),
-                    id: "emojis",
-                    icon: <HappyBeaming size={20} />,
-                    title: <Text id="app.settings.server_pages.emojis.title" />,
-                    hidden: !state.experiments.isEnabled("picker"),
                 },
                 {
                     category: (
@@ -129,11 +118,6 @@ export default observer(() => {
                             <Roles server={server} />
                         </RequiresOnline>
                     </Route>
-                    <Route path="/server/:server/settings/emojis">
-                        <RequiresOnline>
-                            <Emojis server={server} />
-                        </RequiresOnline>
-                    </Route>
                     <Route>
                         <Overview server={server} />
                     </Route>
@@ -148,7 +132,8 @@ export default observer(() => {
                         <LineDivider />
                         <ButtonItem
                             onClick={() =>
-                                modalController.push({
+                                openScreen({
+                                    id: "special_prompt",
                                     type: "delete_server",
                                     target: server,
                                 })

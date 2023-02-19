@@ -2,20 +2,24 @@
 import { useHistory, useParams } from "react-router-dom";
 
 import { Text } from "preact-i18n";
-import { useEffect } from "preact/hooks";
+import { useContext, useEffect } from "preact/hooks";
 
 import { Header } from "@revoltchat/ui";
 
-import { useSession } from "../controllers/client/ClientController";
-import { modalController } from "../controllers/modals/ModalController";
+import { modalController } from "../context/modals";
+import {
+    AppContext,
+    ClientStatus,
+    StatusContext,
+} from "../context/revoltjs/RevoltClient";
 
 export default function Open() {
     const history = useHistory();
-    const session = useSession()!;
-    const client = session.client!;
+    const client = useContext(AppContext);
+    const status = useContext(StatusContext);
     const { id } = useParams<{ id: string }>();
 
-    if (session.state !== "Online") {
+    if (status !== ClientStatus.ONLINE) {
         return (
             <Header palette="primary">
                 <Text id="general.loading" />

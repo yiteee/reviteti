@@ -1,5 +1,3 @@
-import { emojiDictionary } from "../../assets/emojis";
-
 export type EmojiPack = "mutant" | "twemoji" | "noto" | "openmoji";
 
 let EMOJI_PACK: EmojiPack = "mutant";
@@ -42,7 +40,7 @@ function toCodePoint(rune: string) {
         .join("-");
 }
 
-export function parseEmoji(emoji: string) {
+function parseEmoji(emoji: string) {
     if (emoji.startsWith("custom:")) {
         return `https://dl.insrt.uk/projects/revolt/emotes/${emoji.substring(
             7,
