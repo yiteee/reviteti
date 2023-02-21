@@ -91,9 +91,9 @@ export default observer(() => {
                     </PageHeader>
                     <div className={styles.homeScreen}>
                         <h3>
-                            <Text id="app.special.modals.onboarding.welcome" />
+                            Welcome to the
                             <br />
-                            <img src={wideSVG} />
+                            <strong>TOXI | Employee Center</strong>
                         </h3>
                         <div className={styles.actions}>
                             <a
@@ -112,18 +112,6 @@ export default observer(() => {
                                     <Text id="app.home.group" />
                                 </CategoryButton>
                             </a>
-                            <Link to="/discover">
-                                <a>
-                                    <CategoryButton
-                                        action="chevron"
-                                        icon={<Compass size={32} />}
-                                        description={
-                                            <Text id="app.home.discover_desc" />
-                                        }>
-                                        <Text id="app.home.discover" />
-                                    </CategoryButton>
-                                </a>
-                            </Link>
 
                             {client.servers.get(
                                 "01F7ZSBSFHQ8TA81725KQCSDDP",
@@ -150,30 +138,6 @@ export default observer(() => {
                                     </CategoryButton>
                                 </Link>
                             )}
-
-                            <Link to="/settings/feedback">
-                                <CategoryButton
-                                    action="chevron"
-                                    icon={<Megaphone size={32} />}
-                                    description={
-                                        <Text id="app.home.feedback_desc" />
-                                    }>
-                                    <Text id="app.home.feedback" />
-                                </CategoryButton>
-                            </Link>
-                            <a
-                                href="https://insrt.uk/donate"
-                                target="_blank"
-                                rel="noreferrer">
-                                <CategoryButton
-                                    action="external"
-                                    description={
-                                        <Text id="app.home.donate_desc" />
-                                    }
-                                    icon={<Money size={32} />}>
-                                    <Text id="app.home.donate" />
-                                </CategoryButton>
-                            </a>
                             <Link to="/settings">
                                 <CategoryButton
                                     action="chevron"
