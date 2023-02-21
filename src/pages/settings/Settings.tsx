@@ -177,11 +177,6 @@ export default observer(() => {
                     title: <Text id="app.settings.pages.notifications.title" />,
                 },
                 {
-                    id: "language",
-                    icon: <Globe size={20} />,
-                    title: <Text id="app.settings.pages.language.title" />,
-                },
-                {
                     id: "sync",
                     icon: <SyncIcon size={20} />,
                     title: <Text id="app.settings.pages.sync.title" />,
@@ -203,11 +198,6 @@ export default observer(() => {
                     id: "bots",
                     icon: <Bot size={20} />,
                     title: <Text id="app.settings.pages.bots.title" />,
-                },
-                {
-                    id: "feedback",
-                    icon: <Megaphone size={20} />,
-                    title: <Text id="app.settings.pages.feedback.title" />,
                 },
             ]}
             children={
@@ -275,15 +265,6 @@ export default observer(() => {
                         <ButtonItem compact>
                             <Github size={20} />
                             <Text id="app.settings.pages.source_code" />
-                        </ButtonItem>
-                    </a>
-                    <a
-                        href="https://insrt.uk/donate"
-                        target="_blank"
-                        rel="noreferrer">
-                        <ButtonItem className={styles.donate} compact>
-                            <Coffee size={20} />
-                            <Text id="app.settings.pages.donate.title" />
                         </ButtonItem>
                     </a>
                     <LineDivider compact />
