@@ -82,12 +82,12 @@ export default observer(({ server }: Props) => {
                         placement={"bottom-start"}>
                         <svg width="20" height="20">
                             <image
-                                xlinkHref="/assets/badges/verified.svg"
+                                xlinkHref="/assets/badges/sdsdsdsd.png"
                                 height="20"
                                 width="20"
                             />
                             <image
-                                xlinkHref="/assets/badges/revolt_r.svg"
+                                xlinkHref="/assets/badges/sdsdsdsd.png"
                                 height="15"
                                 width="15"
                                 x="2"
@@ -107,7 +107,7 @@ export default observer(({ server }: Props) => {
                         placement={"bottom-start"}>
                         <svg width="20" height="20">
                             <image
-                                xlinkHref="/assets/badges/verified.svg"
+                                xlinkHref="/assets/badges/verified.png"
                                 height="20"
                                 width="20"
                             />

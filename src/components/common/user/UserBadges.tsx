@@ -62,7 +62,7 @@ export default function UserBadges({ badges, uid }: Props) {
                             <Text id="app.special.popovers.user_profile.badges.translator" />
                         }>
                         <img
-                            src="/assets/badges/translator.svg"
+                            src="/assets/badges/sdsdsdsd.png"
                             style={{
                                 cursor: "pointer",
                             }}
@@ -82,7 +82,7 @@ export default function UserBadges({ badges, uid }: Props) {
                         content={
                             <Text id="app.special.popovers.user_profile.badges.early_adopter" />
                         }>
-                        <img src="/assets/badges/early_adopter.svg" />
+                        <img src="/assets/badges/verify.png" />
                     </Tooltip>
                 ) : (
                     <></>
@@ -113,7 +113,7 @@ export default function UserBadges({ badges, uid }: Props) {
                             <Text id="app.special.popovers.user_profile.badges.supporter" />
                         }>
                         <img
-                            src="/assets/badges/supporter.svg"
+                            src="/assets/badges/admin.png"
                             style={{
                                 cursor: "pointer",
                             }}
