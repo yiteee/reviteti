@@ -1,4 +1,4 @@
-FROM node:16-buster AS builder
+FROM node:16-buster@sha256:a4baed9809deba446900d6e2bc6b92c3fe6ccff9ca2873f8d54e263595b02533 AS builder
 
 WORKDIR /usr/src/app
 COPY . .
