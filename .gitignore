@@ -13,5 +13,5 @@ dist-ssr
 public/assets
 public/assets_*
 !public/assets_default
-
+.gitmodules
 .vscode/chrome_data
