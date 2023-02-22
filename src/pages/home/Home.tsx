@@ -125,14 +125,16 @@ export default observer(() => {
                                     </CategoryButton>
                                 </Link>
                             ) : (
-                                <Link to="/invite/Testers">
+                                <Link to="/invite/toximp">
                                     <CategoryButton
                                         action="chevron"
                                         icon={<Group size={32} />}
                                         description={
-                                            <Text id="app.home.join-testers_desc" />
+                                            <h3>Join The Main Server</h3>
                                         }>
-                                        <Text id="app.home.join-testers" />
+                                        <p>
+                                            If you are not in it you should be
+                                        </p>
                                     </CategoryButton>
                                 </Link>
                             )}
